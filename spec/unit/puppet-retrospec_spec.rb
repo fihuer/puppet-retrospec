@@ -31,6 +31,7 @@ describe "puppet-retrospec" do
   it 'should create files without error' do
     tomcat = Retrospec.new(@opts[:module_path], @opts)
     expect(tomcat.create_files).to eq(true)
+    raise
     expect(File.exists?(File.join(@path, 'Gemfile'))).to eq(true)
     expect(File.exists?(File.join(@path, 'Rakefile'))).to eq(true)
     expect(File.exists?(File.join(@path, 'spec', 'shared_contexts.rb'))).to eq(true)
