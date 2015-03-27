@@ -8,8 +8,25 @@ class Conditional
   # those that can be changed
   # those that can be influenced (facts, other variables that contain variables)
   # takes a subtype of Puppet::AST::Branch that contains conditional logic
-  def initialize(branch, parameters)
+  def initialize(branch)
      @statements = branch.statements
+     @test = branch.test
+  end
+
+  def testcase
+    begin
+      case test
+        when Puppet::Parser::AST::ComparisonOperator
+          "#{test.lval.to_s} #{test.operator} #{test.rval.to_s}"
+        when Puppet::Parser::AST::Variable
+          test.to_s
+        else
+          require 'pry'
+          binding.pry
+      end
+    rescue
+
+    end
   end
 
   # get the attributes for the given resources found in the type code passed in
@@ -31,11 +48,14 @@ class Conditional
     [Puppet::Parser::AST::IfStatement, Puppet::Parser::AST::Else]
   end
 
-  # returns a array of branch subtypes
-  def self.find_conditionals(type)
+  # recursively finds all the conditional types specified by types array
+  def self.find_conditionals(statements)
     conds = []
-    if type.code.respond_to?(:find_all)
-      conds = type.code.find_all {|c| types.include?(c.class)  }
+    if statements.respond_to?(:find_all)
+      conds = statements.find_all {|c| types.include?(c.class)  }
+      conds.each do |statement|
+        conds += find_conditionals(statement.statements)
+      end
     end
     conds
   end
@@ -44,8 +64,8 @@ class Conditional
   # we need the type so we can look through the code to find conditional statements
   def self.generate_conditionals(type)
     conditionals = []
-    find_conditionals(type).each do |cond|
-      conditionals << Conditional.new(cond, type.arguments)
+    find_conditionals(type.code).each do |cond|
+      conditionals << Conditional.new(cond)
     end
     conditionals
   end

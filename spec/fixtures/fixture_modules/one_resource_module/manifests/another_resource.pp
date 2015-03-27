@@ -17,10 +17,20 @@ class one_resource::another_resource(
     ensure => present,
     content => $concat_var
   }
-  if $file_name {
+  if $file_name == '1'{
     $if_var1 = 'if_var1_value1'
     file{"$file_name/3":
       ensure => present,
+    }
+    if $if_var1 {
+      file{"$file_name/4":
+        ensure => present,
+      }
+      if $if_var1 {
+        file{"$file_name/5":
+          ensure => present,
+        }
+      }
     }
   }
   else {
